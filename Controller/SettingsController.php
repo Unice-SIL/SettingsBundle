@@ -8,6 +8,7 @@ use Dmishh\SettingsBundle\Manager\SettingsManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
 use Symfony\Component\Security\Core\Exception\AccessDeniedException;
 use Symfony\Contracts\Translation\TranslatorInterface;
 
@@ -34,6 +35,11 @@ class SettingsController extends AbstractController
     private $settingsManager;
 
     /**
+     * @var AuthorizationCheckerInterface
+     */
+    private $authorizationChecker;
+
+    /**
      * @var string
      */
     private $template;
@@ -41,12 +47,14 @@ class SettingsController extends AbstractController
     public function __construct(
         TranslatorInterface $translator,
         SettingsManagerInterface $settingsManager,
+        AuthorizationCheckerInterface $authorizationChecker,
         string $template,
         bool $securityManageOwnSettings,
         ?string $securityRole
     ) {
         $this->translator = $translator;
         $this->settingsManager = $settingsManager;
+        $this->authorizationChecker = $authorizationChecker;
         $this->template = $template;
         $this->securityManageOwnSettings = $securityManageOwnSettings;
         $this->securityRole = $securityRole;
@@ -57,7 +65,7 @@ class SettingsController extends AbstractController
      */
     public function manageGlobalAction(Request $request): Response
     {
-        if (null !== $this->securityRole && !$this->get('security.authorization_checker')->isGranted($this->securityRole)) {
+        if (null !== $this->securityRole && !$this->authorizationChecker->isGranted($this->securityRole)) {
             throw new AccessDeniedException($this->translator->trans('not_allowed_to_edit_global_settings', [], 'settings'));
         }
 
