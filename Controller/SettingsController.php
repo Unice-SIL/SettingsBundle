@@ -5,6 +5,8 @@ namespace Dmishh\SettingsBundle\Controller;
 use Dmishh\SettingsBundle\Entity\SettingsOwnerInterface;
 use Dmishh\SettingsBundle\Form\Type\SettingsType;
 use Dmishh\SettingsBundle\Manager\SettingsManagerInterface;
+use Psr\Container\ContainerExceptionInterface;
+use Psr\Container\NotFoundExceptionInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -61,7 +63,21 @@ class SettingsController extends AbstractController
     }
 
     /**
-     * @throws AccessDeniedException
+     * @param string $serviceName
+     * @return mixed
+     * @throws ContainerExceptionInterface
+     * @throws NotFoundExceptionInterface
+     */
+    private function get(string $serviceName)
+    {
+        return $this->container->get($serviceName);
+    }
+
+    /**
+     * @param Request $request
+     * @return Response
+     * @throws ContainerExceptionInterface
+     * @throws NotFoundExceptionInterface
      */
     public function manageGlobalAction(Request $request): Response
     {
@@ -73,7 +89,10 @@ class SettingsController extends AbstractController
     }
 
     /**
-     * @throws AccessDeniedException
+     * @param Request $request
+     * @return Response
+     * @throws ContainerExceptionInterface
+     * @throws NotFoundExceptionInterface
      */
     public function manageOwnAction(Request $request): Response
     {
@@ -94,6 +113,11 @@ class SettingsController extends AbstractController
         return $this->manage($request, $user);
     }
 
+    /**
+     * @param Request $request
+     * @param SettingsOwnerInterface|null $owner
+     * @return Response
+     */
     protected function manage(Request $request, ?SettingsOwnerInterface $owner = null): Response
     {
         $form = $this->createForm(SettingsType::class, $this->settingsManager->all($owner));
